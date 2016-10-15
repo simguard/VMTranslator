@@ -1,0 +1,17 @@
+push constant 10
+pop argument 2
+add
+sub
+gt
+lt
+eq
+and
+neg
+or
+not
+push this 6
+push this 6
+add
+sub
+push temp 6
+add
