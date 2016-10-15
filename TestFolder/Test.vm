@@ -1,4 +1,4 @@
-push constant 10
+push static 10
 pop argument 2
 add
 sub
