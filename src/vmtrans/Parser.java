@@ -5,18 +5,18 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.lang.Integer;
-import java.util.Scanner;
 
 /*
- * @author Jeffrey White
+ * @author Jeffrey White  10/08/2016
+ * Parser opens a file to be read, parses it, then sends it to CodeWriter for translation and stores the result in an ArrayList
  */
+
 
 public class Parser {
 	
 	ArrayList<String> lines = new ArrayList<>();	//Array list to contain the initial raw instructions
-	ArrayList<String> hack = new ArrayList<>();			
+	ArrayList<String> hack = new ArrayList<>();		//holds translated commands 
 	public enum Command {
 		C_ARITHMETIC, C_PUSH, C_POP, C_LABEL, C_GOTO, C_IF, C_FUNCTION, C_RETURN, C_CALL
 	}
@@ -24,7 +24,8 @@ public class Parser {
 
 	
 	/*
-	 * 
+	 * Constructor opens a file to be read and removes any comments or empty lines and stores the result in an ArrayList
+	 * @param String file -  name of file to be read
 	 */
 	public Parser(String file) {
 		
@@ -60,9 +61,16 @@ public class Parser {
 				
 	}
 	
-	public String Parse (String command) {
+	/*
+	 * parse parses a command, determines its type and sends the appropriate information to CodeWriter for translation
+	 * @param String command - the command to be parsed
+	 * @param String vmName - the name of the file for static purposes
+	 * @return String - the translated assembly language 
+	 */
+	public String parse (String command, String vmName) {
 
 		CodeWriter code = new CodeWriter();
+		vmName = removePath(vmName);
 		String asmCommand = command;
 		
 		switch (commandType(command)) {
@@ -72,15 +80,26 @@ public class Parser {
 		case C_PUSH:
 			String[] commandArgs = command.split("\\s+");
 			int index = Integer.parseInt(commandArgs[2]);
-			asmCommand = code.writePush(commandArgs[1], index);
+			asmCommand = code.writePush(commandArgs[1], index, vmName);
 			break;
 		case C_POP:
 			commandArgs = command.split("\\s+");
 			index = Integer.parseInt(commandArgs[2]);
-			asmCommand = code.writePop(commandArgs[1], index);
+			asmCommand = code.writePop(commandArgs[1], index, vmName);
 			break;
-		case C_GOTO:	case C_IF:	
-		case C_LABEL:	case C_RETURN:
+		case C_GOTO:
+			commandArgs = command.split("\\s+");
+			asmCommand = code.writeGoto(commandArgs[1], vmName);
+			break;
+		case C_IF:
+			commandArgs = command.split("\\s+");
+			asmCommand = code.writeIf(commandArgs[1], vmName);
+			break;
+		case C_LABEL:
+			commandArgs = command.split("\\s+");
+			asmCommand = code.writeLabel(commandArgs[1], vmName);
+			break;
+		case C_RETURN:
 			break;
 		default:
 			break;
@@ -90,11 +109,19 @@ public class Parser {
 	}
 
 
-	
+	/*
+	 * getFileLinesArray simply returns the ArrayList containing the untranslated commands
+	 * @return ArrayList<String> - ArrayList of VM commands
+	 */
 	public ArrayList<String> getFileLinesArray () {
 		return lines;
 	}
 	
+	/*
+	 * commandType determines the type of command and returns it as an enum
+	 * @param String currentCheck - the current command to check
+	 * @return Command- the enum for the current command being checked 
+	 */
 	public Command commandType(String currentCheck) {
 		
 		String firstTwoChar = currentCheck.substring(0, 2);
@@ -126,6 +153,20 @@ public class Parser {
 		
 	}
 	
+	/*
+	 * removePath removes the path from the String and returns only the VM name
+	 * @param String vmName - the name to check for removing files
+	 * @return vmName - the VM name with no path
+	 */
+	private String removePath (String vmName) {
+		int index = 0;
+		index = vmName.lastIndexOf("/");
+		index = vmName.lastIndexOf("\\");
+		if (index > 0) {
+			vmName = vmName.substring(index+1);
+		}
+		return vmName;
+	}
 	
 
 }
